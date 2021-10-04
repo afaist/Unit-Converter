@@ -1,6 +1,44 @@
 package converter
 
-import java.util.*
+const val LENGTH = 'L'
+const val WEIGHT = 'W'
+const val TEMPERATURE = 'T'
+
+enum class Units(
+    val shortName: String, val singular: String, val plural: String,
+    val multiplier: Double, val difference: Double = 0.0,
+) {
+    L1("m", "meter", "meters", 1.0),
+    L2("km", "kilometer", "kilometers", 1000.0),
+    L3("cm", "centimeter", "centimeters", 0.01),
+    L4("mm", "millimeter", "millimeters", 0.001),
+    L5("mi", "mile", "miles", 1609.35),
+    L6("yd", "yard", "yards", 0.9144),
+    L7("ft", "foot", "feet", 0.3048),
+    L8("in", "inch", "inches", 0.0254),
+
+    W1("g", "gram", "grams", 1.0),
+    W2("kg", "kilogram", "kilograms", 1000.0),
+    W3("mg", "milligram", "milligrams", 0.001),
+    W4("lb", "pound", "pounds", 453.592),
+    W5("oz", "ounce", "ounces", 28.3495),
+
+    T1("k", "kelvin", "kelvins", 1.0),
+    T2("c", "degree Celsius", "degrees Celsius", 1.0, 273.15),
+    T3("dc", "degree Celsius", "degrees Celsius", 1.0, 273.15),
+    T4("celsius", "degree Celsius", "degrees Celsius", 1.0, 273.15),
+    T5("f", "degree Fahrenheit", "degrees Fahrenheit", 5 / 9.0, 459.67),
+    T6("df", "degree Fahrenheit", "degrees Fahrenheit", 5 / 9.0, 459.67),
+    T7("fahrenheit", "degree Fahrenheit", "degrees Fahrenheit", 5 / 9.0, 459.67),
+    UNKNOWN("???", "???", "???", 1.0);
+
+    companion object {
+        fun getUnit(unit: String): Units {
+            return values().find { it.shortName == unit || it.singular == unit || it.plural == unit }
+                ?: UNKNOWN
+        }
+    }
+}
 
 fun main() {
     do {
@@ -9,83 +47,56 @@ fun main() {
         if (inString == "exit") {
             break
         }
-        val (n, measureIn, _, measureOut) = inString.split(" ")
-        val number = n.toDouble()
-        Dispatcher(number, measureIn.lowercase(), measureOut.lowercase())
+        val triple = parseInput(inString) ?: continue
+        val number = triple.first
+        val unitIn = Units.getUnit(triple.second)
+        val unitOut = Units.getUnit(triple.third)
+
+        if ((unitIn == Units.UNKNOWN && unitOut == Units.UNKNOWN) || unitIn.name.first() != unitOut.name.first()) {
+            println("Conversion from ${unitIn.plural} to ${unitOut.plural} is impossible")
+        } else if (number < 0 && unitIn.name.first() != TEMPERATURE) {
+            print(if (unitIn.name.first() == WEIGHT) {
+                "Weight"
+            } else if (unitIn.name.first() == LENGTH) {
+                "Length"
+            } else {
+                "???"
+            })
+            println(" shouldn't be negative")
+        } else {
+            val numberOut = if (unitIn == unitOut) {
+                number
+            } else {
+                (number + unitIn.difference) * unitIn.multiplier / unitOut.multiplier - unitOut.difference
+            }
+            val nameIn = if (number == 1.0) unitIn.singular else unitIn.plural
+            val nameOut = if (numberOut == 1.0) unitOut.singular else unitOut.plural
+            println("$number $nameIn is $numberOut $nameOut")
+        }
     } while (true)
 }
 
-class Dispatcher(number: Double, from: String, to: String) {
-    private fun getMetrics(measure: String) = when (measure) {
-        "m", "meter", "meters" -> Triple("M", "meter", "meters")
-        "km", "kilometer", "kilometers" -> Triple("M", "kilometer", "kilometers")
-        "cm", "centimeter", "centimeters" -> Triple("M", "centimeter", "centimeters")
-        "mm", "millimeter", "millimeters"  -> Triple("M", "millimeter", "millimeters")
-        "mi", "mile", "miles" -> Triple("M", "mile", "miles")
-        "yd", "yard", "yards" -> Triple("M", "yard", "yards")
-        "ft", "foot", "feet" -> Triple("M", "foot", "feet")
-        "in", "inch", "inches" -> Triple("M", "inch", "inches")
-        "g", "gram", "grams" -> Triple("W", "gram", "grams")
-        "kg", "kilogram", "kilograms" -> Triple("W", "kilogram", "kilograms")
-        "mg", "milligram", "milligrams" -> Triple("W", "milligram", "milligrams")
-        "lb", "pound", "pounds" -> Triple("W", "pound", "pounds")
-        "oz", "ounce", "ounces" -> Triple("W", "ounce", "ounces")
-        else -> null
-    }
-
-    init {
-        val measureIn = getMetrics(from)
-        val measureOut = getMetrics(to)
-
-        if (measureIn == null || measureOut == null) {
-            println("Conversion from ${measureIn?.third ?: "???"} to ${measureOut?.third ?: "???"} is impossible")
-        } else if (measureIn.first != measureOut.first) {
-            println("Conversion from ${measureIn.third} to ${measureOut.third} is impossible")
-        } else {
-            try {
-                val unit =
-                    Units(number, Pair(measureIn.second, measureIn.third), Pair(measureOut.second, measureOut.third))
-                println(unit)
-            } catch (e: IllegalFormatException) {
-                println("Conversion from ${measureIn.third} to ${measureOut.third} is impossible")
-            }
-
+/**
+ * parsing the command line
+ */
+fun parseInput(inString: String): Triple<Double, String, String>? {
+    try {
+        val query = inString.lowercase().split(" ")
+        var i = 0
+        val number = query[i++].toDouble() // an interruption may occur if the number format is incorrect
+        // first unit name
+        var measureIn = query[i++]
+        if (measureIn.contains("degree")) {
+            measureIn = "$measureIn ${query[i++].run { this[0].uppercaseChar() + this.drop(1) }}"
         }
-    }
-}
-
-class Units(private val numberIn: Double, measureIn: Pair<String, String>, measureOut: Pair<String, String>) {
-    private val numberOut = if (measureIn == measureOut) {
-        numberIn
-    } else if (convert(measureOut.first) == 0.0) {
-        -1.0
-    } else {
-        numberIn * convert(measureIn.first) / convert(measureOut.first)
-    }
-    private val nameIn = if (numberIn == 1.0) measureIn.first else measureIn.second
-    private val nameOut = if (numberOut == 1.0) measureOut.first else measureOut.second
-
-    /**
-     * we count all distances in meters and weight in grams
-     */
-    private fun convert(measure: String): Double = when (measure) {
-        "meter" -> 1.0
-        "kilometer" -> 1000.0 // 1 km == 1000 m
-        "centimeter" -> 1 / 100.0
-        "millimeter" -> 1 / 1000.0
-        "mile" -> 1609.35
-        "yard" -> 0.9144
-        "foot" -> 0.3048
-        "inch" -> 0.0254
-        "gram" -> 1.0
-        "kilogram" -> 1000.0 // 1 kg == 1000 g
-        "milligram" -> 1 / 1000.0
-        "pound" -> 453.592
-        "ounce" -> 28.3495
-        else -> 0.0
-    }
-
-    override fun toString(): String {
-        return "$numberIn $nameIn is $numberOut $nameOut"
+        // second unit name
+        var measureOut = query[++i]
+        if (measureOut.contains("degree")) {
+            measureOut = "$measureOut ${query[++i].run { this[0].uppercaseChar() + this.drop(1) }}"
+        }
+        return Triple(number, measureIn, measureOut)
+    } catch (e: NumberFormatException) {
+        println("Parse error")
+        return null
     }
 }
