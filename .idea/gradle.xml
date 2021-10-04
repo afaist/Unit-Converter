@@ -8,7 +8,7 @@
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="#JAVA_INTERNAL" />
+        <option name="gradleJvm" value="1.8" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -17,6 +17,8 @@
             <option value="$PROJECT_DIR$/Topics/Companion object/Fix an error" />
             <option value="$PROJECT_DIR$/Topics/Companion object/Fix me" />
             <option value="$PROJECT_DIR$/Topics/Companion object/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Creating custom exceptions/Create custom exception" />
+            <option value="$PROJECT_DIR$/Topics/Creating custom exceptions/Theory" />
             <option value="$PROJECT_DIR$/Topics/Enum/Currencies" />
             <option value="$PROJECT_DIR$/Topics/Enum/Currency comparison" />
             <option value="$PROJECT_DIR$/Topics/Enum/Rainbow colors" />
@@ -27,6 +29,11 @@
             <option value="$PROJECT_DIR$/Topics/Object declarations/Cell" />
             <option value="$PROJECT_DIR$/Topics/Object declarations/Library" />
             <option value="$PROJECT_DIR$/Topics/Object declarations/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Ranges/Between two numbers" />
+            <option value="$PROJECT_DIR$/Topics/Ranges/Job" />
+            <option value="$PROJECT_DIR$/Topics/Ranges/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Ranges/Within a range" />
+            <option value="$PROJECT_DIR$/Topics/Ranges/Within both ranges" />
             <option value="$PROJECT_DIR$/Topics/While loops/Collatz conjecture" />
             <option value="$PROJECT_DIR$/Topics/While loops/Squares of natural numbers" />
             <option value="$PROJECT_DIR$/Topics/While loops/The largest element" />

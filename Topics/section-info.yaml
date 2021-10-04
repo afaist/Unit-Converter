@@ -4,3 +4,5 @@ content:
 - Companion object
 - While loops
 - Enum
+- Creating custom exceptions
+- Ranges
